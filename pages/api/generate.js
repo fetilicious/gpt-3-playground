@@ -1,4 +1,7 @@
 import { Configuration, OpenAIApi } from "openai";
+import { OpenAI } from "langchain/llms/openai";
+import { PromptTemplate } from "langchain/prompts";
+import { LLMChain } from "langchain/chains";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,13 +28,21 @@ export default async function (req, res) {
     return;
   }
 
+  const capitalizedAnimal =
+    animal[0].toUpperCase() + animal.slice(1).toLowerCase();
+
   try {
-    const completion = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: generatePrompt(animal),
-      temperature: 0.6,
-    });
-    res.status(200).json({ result: completion.data.choices[0].text });
+    // const completion = await openai.createCompletion({
+    //   model: "text-davinci-003",
+    //   prompt: generatePrompt(animal),
+    //   temperature: 0.6,
+    // });
+
+    const model = new OpenAI({model_name : "text-davinci-003", temperature : 0.9});
+    const chain = new LLMChain({ llm: model, prompt: generatePromptTemplate() });
+    const llmResponse = await chain.call({ animal: capitalizedAnimal });
+    res.status(200).json({ result: llmResponse.text });
+    // res.status(200).json({ result: completion.data.choices[0].text });
   } catch(error) {
     // Consider adjusting the error handling logic for your use case
     if (error.response) {
@@ -48,15 +59,20 @@ export default async function (req, res) {
   }
 }
 
-function generatePrompt(animal) {
-  const capitalizedAnimal =
-    animal[0].toUpperCase() + animal.slice(1).toLowerCase();
-  return `Suggest three names for an animal that is a superhero.
+function generatePromptTemplate() {
+  const animalNameTemplate = `Suggest three names for an animal that is a superhero.
 
 Animal: Cat
 Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
 Animal: Dog
 Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: ${capitalizedAnimal}
+Animal: {animal}
 Names:`;
+
+  const prompt = new PromptTemplate({
+    template : animalNameTemplate,
+    inputVariables: ["animal"],
+  });
+
+  return prompt;
 }
