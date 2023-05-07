@@ -2,7 +2,7 @@ import Head from "next/head";
 import { useState } from "react";
 import styles from "./index.module.css";
 
-export default function Home() {
+export default function PageOne() {
   const [animalInput, setAnimalInput] = useState("");
   const [result, setResult] = useState();
 
@@ -34,18 +34,17 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>OpenAI Quickstart</title>
+        <title>Page One</title>
         <link rel="icon" href="/dog.png" />
       </Head>
 
       <main className={styles.main}>
-        <img src="/dog.png" className={styles.icon} />
-        <h3>Create a story for a pet</h3>
+        <h3>Page One</h3>
         <form onSubmit={onSubmit}>
           <input
             type="text"
             name="animal"
-            placeholder="Enter an animal"
+            placeholder="Enter a prompt"
             value={animalInput}
             onChange={(e) => setAnimalInput(e.target.value)}
           />
