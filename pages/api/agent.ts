@@ -18,22 +18,25 @@ import {
   AgentAction,
   AgentFinish,
 } from "langchain/schema";
-import { BingSerpAPI, SerpAPI, Tool } from "langchain/tools";
+import { SerpAPI, Tool } from "langchain/tools";
 import { Calculator } from "langchain/tools/calculator";
+import { RandomNumberGenerator } from "../../ai_tools/RandomNumberGenerator";
 
 const PREFIX = `Answer the following questions as best you can. You have access to the following tools:`;
 const formatInstructions = (
   toolNames: string
 ) => `Use the following format in your response:
 
-Question: the input question you must answer
+Question: the input question or task you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [${toolNames}]
 Action Input: the input to the action
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat N times)
 Thought: I now know the final answer
-Final Answer: the final answer to the original input question`;
+Final Answer: the final answer to the original input question
+OR
+Failure Reaseon: the reason why you cannot answer question or finish task`;
 const SUFFIX = `Begin!
 
 Question: {input}
@@ -88,6 +91,11 @@ class CustomOutputParser extends AgentActionOutputParser {
       const input = parts[parts.length - 1].trim();
       const finalAnswers = { output: input };
       return { log: text, returnValues: finalAnswers };
+    } else if (text.includes("Failure Reason:")) {
+      const parts = text.split("Final Answer:");
+      const input = parts[parts.length - 1].trim();
+      const finalAnswers = { output: input };
+      return { log: text, returnValues: finalAnswers };
     }
 
     const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
@@ -117,6 +125,7 @@ export default async function (req, res) {
       gl: "us",
     }),
     new Calculator(),
+    new RandomNumberGenerator(),
   ];
 
   const llmChain = new LLMChain({
