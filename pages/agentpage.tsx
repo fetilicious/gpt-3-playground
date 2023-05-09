@@ -2,19 +2,19 @@ import Head from "next/head";
 import { useState } from "react";
 import styles from "./index.module.css";
 
-export default function PageOne() {
-  const [animalInput, setAnimalInput] = useState("");
+export default function AgentPage() {
+  const [input, setInput] = useState("");
   const [result, setResult] = useState();
 
   async function onSubmit(event) {
     event.preventDefault();
     try {
-      const response = await fetch("/api/generate", {
+      const response = await fetch("/api/agent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ animal: animalInput }),
+        body: JSON.stringify({ input: input }),
       });
 
       const data = await response.json();
@@ -23,7 +23,7 @@ export default function PageOne() {
       }
 
       setResult(data.result);
-      setAnimalInput("");
+      setInput("");
     } catch(error) {
       // Consider implementing your own error handling logic here
       console.error(error);
@@ -34,21 +34,20 @@ export default function PageOne() {
   return (
     <div>
       <Head>
-        <title>Page One</title>
-        <link rel="icon" href="/dog.png" />
+        <title>Agent page</title>
       </Head>
 
       <main className={styles.main}>
-        <h3>Page One</h3>
+        <h3>Agent page</h3>
         <form onSubmit={onSubmit}>
           <input
             type="text"
-            name="animal"
+            name="agent prompt"
             placeholder="Enter a prompt"
-            value={animalInput}
-            onChange={(e) => setAnimalInput(e.target.value)}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
           />
-          <input type="submit" value="Generate names" />
+          <input type="submit" value="Agent task" />
         </form>
         <div className={styles.result}>{result}</div>
       </main>

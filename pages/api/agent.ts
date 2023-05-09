@@ -18,7 +18,7 @@ import {
   AgentAction,
   AgentFinish,
 } from "langchain/schema";
-import { SerpAPI, Tool } from "langchain/tools";
+import { BingSerpAPI, SerpAPI, Tool } from "langchain/tools";
 import { Calculator } from "langchain/tools/calculator";
 
 const PREFIX = `Answer the following questions as best you can. You have access to the following tools:`;
@@ -108,10 +108,11 @@ class CustomOutputParser extends AgentActionOutputParser {
 }
 
 export default async function (req, res) {
-  const model = new OpenAI({ temperature: 0 });
+  const input = req.body.input || '';
+  const model = new OpenAI({ model_name : "gpt-4", temperature: 0.1 });
   const tools = [
     new SerpAPI(process.env.SERPAPI_API_KEY, {
-      location: "Austin,Texas,United States",
+      location: "Seattle,Washington,United States",
       hl: "en",
       gl: "us",
     }),
@@ -124,6 +125,7 @@ export default async function (req, res) {
       inputVariables: ["input", "agent_scratchpad"],
     }),
     llm: model,
+    verbose: true,
   });
 
   const agent = new LLMSingleActionAgent({
@@ -137,11 +139,11 @@ export default async function (req, res) {
   });
   console.log("Loaded agent.");
 
-  const input = `Who is Olivia Wilde's boyfriend? What is his current age raised to the 0.23 power?`;
-
   console.log(`Executing with input "${input}"...`);
 
   const result = await executor.call({ input });
 
   console.log(`Got output ${result.output}`);
+
+  res.status(200).json({result : result.output});
 }
