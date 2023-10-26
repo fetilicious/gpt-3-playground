@@ -4,11 +4,13 @@ import styles from "./index.module.css";
 
 export default function Home() {
   const [animalInput, setAnimalInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState();
 
   async function onSubmit(event) {
     event.preventDefault();
     try {
+      setIsLoading(true);
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
@@ -28,6 +30,8 @@ export default function Home() {
       // Consider implementing your own error handling logic here
       console.error(error);
       alert(error.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -49,7 +53,7 @@ export default function Home() {
             value={animalInput}
             onChange={(e) => setAnimalInput(e.target.value)}
           />
-          <input type="submit" value="Generate names" />
+          <input type="submit" value="Generate names" disabled={isLoading} />
         </form>
         <div className={styles.result}>{result}</div>
       </main>
